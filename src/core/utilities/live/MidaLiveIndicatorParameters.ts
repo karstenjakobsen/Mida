@@ -20,46 +20,18 @@
  * THE SOFTWARE.
 */
 
-import { MidaMarketWatcher, } from "#watchers/MidaMarketWatcher";
+import { MidaIndicator, } from "#indicators/MidaIndicator";
 import { MidaTradingAccount, } from "#accounts/MidaTradingAccount";
-import { MidaDecimal, } from "#decimals/MidaDecimal";
 import { MidaEventListener, } from "#events/MidaEventListener";
 
-const liveSymbols: WeakMap<any, MidaMarketWatcher> = new WeakMap();
-
-export type MidaLiveSymbol = {
-    symbol: string;
-    bid: MidaDecimal;
-    ask: MidaDecimal;
-};
-
-export const makeLiveSymbol = async (symbol: string, tradingAccount: MidaTradingAccount, onUpdate?: MidaEventListener): Promise<MidaLiveSymbol> => {
-    const marketWatcher: MidaMarketWatcher = new MidaMarketWatcher({ tradingAccount, });
-    const liveSymbol: MidaLiveSymbol = {
-        symbol,
-        bid: await tradingAccount.getSymbolBid(symbol),
-        ask: await tradingAccount.getSymbolAsk(symbol),
+export type MidaLiveIndicatorParameters = {
+    indicator: MidaIndicator;
+    tradingAccount: MidaTradingAccount;
+    input: {
+        symbol: string;
+        timeframe: number;
+        price?: "open" | "high" | "low" | "close";
+        // useLastLivePeriod?: boolean; TODO
     };
-
-    marketWatcher.on("tick", (event) => {
-        const { bid, ask, } = event.descriptor.tick;
-
-        liveSymbol.bid = bid;
-        liveSymbol.ask = ask;
-
-        onUpdate?.(event);
-    });
-
-    return liveSymbol;
-};
-
-export const closeLiveSymbol = async (symbol: string): Promise<void> => {
-    const marketWatcher: MidaMarketWatcher | undefined = liveSymbols.get(symbol);
-
-    if (!marketWatcher) {
-        return;
-    }
-
-    marketWatcher.unwatch(symbol);
-    liveSymbols.delete(symbol);
+    onUpdate?: MidaEventListener;
 };
