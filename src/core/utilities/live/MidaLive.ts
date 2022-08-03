@@ -26,13 +26,15 @@ import { MidaIndicator, } from "#indicators/MidaIndicator";
 import { MidaPeriod, } from "#periods/MidaPeriod";
 import { MidaDecimal, } from "#decimals/MidaDecimal";
 import { MidaEvent, } from "#events/MidaEvent";
+import { MidaTradingAccount } from "#accounts/MidaTradingAccount";
 
 const liveIndicators: WeakMap<object, MidaMarketWatcher> = new WeakMap();
+const livePeriods: WeakMap<object, MidaMarketWatcher> = new WeakMap();
 
 export const makeLiveIndicator = async ({
     indicator,
-    tradingAccount,
     input,
+    tradingAccount,
     onUpdate,
 }: MidaLiveIndicatorParameters): Promise<MidaIndicator> => {
     if (liveIndicators.has(indicator)) {
@@ -48,7 +50,6 @@ export const makeLiveIndicator = async ({
     const marketWatcher: MidaMarketWatcher = new MidaMarketWatcher({ tradingAccount, });
 
     await marketWatcher.watch(input.symbol, {
-        watchTicks: false,
         watchPeriods: true,
         timeframes: [ input.timeframe, ],
     });
@@ -75,4 +76,24 @@ export const endLiveIndicator = async (indicator: MidaIndicator): Promise<MidaIn
     }
 
     return indicator;
+};
+
+export const makeLivePeriods = async (symbol: string, timeframe: number, tradingAccount: MidaTradingAccount): Promise<MidaPeriod[]> => {
+    const periods: MidaPeriod[] = await tradingAccount.getSymbolPeriods(symbol, timeframe);
+    const marketWatcher: MidaMarketWatcher = new MidaMarketWatcher({ tradingAccount, });
+
+    await marketWatcher.watch(symbol, {
+        watchPeriods: true,
+        timeframes: [ timeframe, ],
+    });
+
+    marketWatcher.on("period-close", async (event: MidaEvent): Promise<void> => {
+        const { period, } = event.descriptor;
+
+        periods.push(period);
+    });
+
+    livePeriods.set(periods, marketWatcher);
+
+    return periods;
 };

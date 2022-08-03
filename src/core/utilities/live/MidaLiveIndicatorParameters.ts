@@ -26,12 +26,12 @@ import { MidaEventListener, } from "#events/MidaEventListener";
 
 export type MidaLiveIndicatorParameters = {
     indicator: MidaIndicator;
-    tradingAccount: MidaTradingAccount;
     input: {
         symbol: string;
         timeframe: number;
         price?: "open" | "high" | "low" | "close";
         // useLastLivePeriod?: boolean; TODO
     };
+    tradingAccount: MidaTradingAccount;
     onUpdate?: MidaEventListener;
 };
