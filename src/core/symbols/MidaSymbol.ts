@@ -36,6 +36,7 @@ export class MidaSymbol {
     readonly #minLots: MidaDecimal;
     readonly #maxLots: MidaDecimal;
     readonly #lotUnits: MidaDecimal;
+    readonly #tickSize: MidaDecimal;
     readonly #pipPosition: number;
     readonly #emitter: MidaEmitter;
 
@@ -49,6 +50,7 @@ export class MidaSymbol {
         minLots,
         maxLots,
         lotUnits,
+        tickSize,
         pipPosition,
     }: MidaSymbolParameters) {
         this.#symbol = symbol;
@@ -60,6 +62,7 @@ export class MidaSymbol {
         this.#minLots = minLots;
         this.#maxLots = maxLots;
         this.#lotUnits = lotUnits;
+        this.#tickSize = tickSize;
         this.#pipPosition = pipPosition;
         this.#emitter = new MidaEmitter();
     }
@@ -102,6 +105,11 @@ export class MidaSymbol {
     /** The symbol units for one lot */
     public get lotUnits (): MidaDecimal {
         return this.#lotUnits;
+    }
+
+    /** The symbol tick size */
+    public get tickSize (): MidaDecimal {
+        return this.#tickSize;
     }
 
     /** The symbol pip position */
