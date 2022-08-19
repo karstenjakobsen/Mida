@@ -29,9 +29,9 @@ import { MidaTick, } from "#ticks/MidaTick";
 import { MidaEmitter, } from "#utilities/emitters/MidaEmitter";
 import { GenericObject, } from "#utilities/GenericObject";
 import { mergeOptions, } from "#utilities/MidaUtilities";
+import { MidaMarketWatcherConfiguration, } from "#watchers/MidaMarketWatcherConfiguration";
 import { MidaMarketWatcherDirectives, } from "#watchers/MidaMarketWatcherDirectives";
 import { MidaMarketWatcherParameters, } from "#watchers/MidaMarketWatcherParameters";
-import { MidaMarketWatcherConfiguration, } from "#watchers/MidaMarketWatcherConfiguration";
 
 export class MidaMarketWatcher {
     readonly #tradingAccount: MidaTradingAccount;

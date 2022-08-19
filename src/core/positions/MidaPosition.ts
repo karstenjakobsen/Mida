@@ -114,7 +114,7 @@ export abstract class MidaPosition {
 
     public abstract getUnrealizedCommission (): Promise<MidaDecimal>;
 
-    public abstract changeProtection (protection: MidaProtectionDirectives): Promise<MidaProtectionChange>;
+    public abstract changeProtection (directives: MidaProtectionDirectives): Promise<MidaProtectionChange>;
 
     public abstract addVolume (volume: MidaDecimalConvertible): Promise<MidaOrder>;
 
@@ -181,7 +181,7 @@ export abstract class MidaPosition {
         }
 
         this.#emitter.notifyListeners("trade", { trade, });
-        info(`Position ${this.id} | trade ${trade.id} executed`);
+        info(`Position ${this.id} | Trade ${trade.id} executed`);
     }
 
     protected onProtectionChange (protection: MidaProtection): void {
@@ -196,26 +196,26 @@ export abstract class MidaPosition {
             trailingStopLoss: actualTrailingStopLoss,
         } = this.#protection;
 
-        if (takeProfit !== actualTakeProfit) {
+        if (takeProfit && (!actualTakeProfit || !actualTakeProfit.equals(takeProfit))) {
             this.#protection.takeProfit = takeProfit;
 
             this.#emitter.notifyListeners("take-profit-change", { takeProfit, });
         }
 
-        if (stopLoss !== actualStopLoss) {
+        if (stopLoss && (!actualStopLoss || !actualStopLoss.equals(stopLoss))) {
             this.#protection.stopLoss = stopLoss;
 
             this.#emitter.notifyListeners("stop-loss-change", { stopLoss, });
         }
 
-        if (trailingStopLoss !== actualTrailingStopLoss) {
-            this.#protection.trailingStopLoss = actualTrailingStopLoss;
+        if (trailingStopLoss !== actualTrailingStopLoss && (stopLoss || actualStopLoss)) {
+            this.#protection.trailingStopLoss = trailingStopLoss;
 
             this.#emitter.notifyListeners("trailing-stop-loss-change", { trailingStopLoss, });
         }
 
         this.#emitter.notifyListeners("protection-change", { protection, });
-        info(`Position ${this.id} | protection changed`);
+        info(`Position ${this.id} | Protection changed`);
     }
 
     protected onSwap (swap: MidaDecimal): void {
