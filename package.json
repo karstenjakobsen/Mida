@@ -21,6 +21,7 @@
         "mida:tsc": "ttsc",
         "mida:test": "npm run mida:tsc && jest --verbose",
         "mida:build": "rm -rf ./build && npm run mida:lint && npm run mida:tsc && jest",
+        "mida:node": "npm run mida:tsc && node ./build/entry/node/main.js",
         "prepublishOnly": "npm run mida:build"
     },
     "main": "./build/entry/node/main.js",
