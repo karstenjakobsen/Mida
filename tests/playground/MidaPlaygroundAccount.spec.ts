@@ -234,5 +234,56 @@ describe("MidaPlaygroundAccount", () => {
             expect(order.status).toBe(MidaOrderStatus.REJECTED);
             expect(order.rejection).toBe(MidaOrderRejection.NOT_ENOUGH_MONEY);
         });
+
+        it("BUY MARKET is executed at the current price when no latency is set", async () => {
+            const engine = new MidaPlaygroundEngine({ localDate: "2022-04-04T04:04:04.004Z", });
+
+            engine.registerSymbolTicks("ETHUSD", ticks);
+            await engine.elapseTicks(1);
+
+            const account = await engine.createAccount({
+                balanceSheet: {
+                    "USD": 100000,
+                },
+            });
+
+            await account.registerSymbol(symbolParameters);
+
+            const expectedPrice = await engine.getSymbolAsk("ETHUSD");
+            const order = await account.placeOrder({
+                symbol: "ETHUSD",
+                direction: MidaOrderDirection.BUY,
+                volume: 1,
+            });
+
+            expect(order.status).toBe(MidaOrderStatus.EXECUTED);
+            expect(order.executionPrice?.equals(expectedPrice)).toBe(true);
+        });
+
+        it("BUY MARKET is not executed at the current price when significant latency is set", async () => {
+            const engine = new MidaPlaygroundEngine({ localDate: "2022-04-04T04:04:04.004Z", });
+
+            engine.registerSymbolTicks("ETHUSD", ticks);
+            await engine.elapseTicks(1);
+
+            const account = await engine.createAccount({
+                balanceSheet: {
+                    "USD": 100000,
+                },
+            });
+
+            await account.registerSymbol(symbolParameters);
+            account.setLatencyCustomizer(async () => 4);
+
+            const expectedPrice = await engine.getSymbolAsk("ETHUSD");
+            const order = await account.placeOrder({
+                symbol: "ETHUSD",
+                direction: MidaOrderDirection.BUY,
+                volume: 1,
+            });
+
+            expect(order.status).toBe(MidaOrderStatus.EXECUTED);
+            expect(order.executionPrice?.equals(expectedPrice)).toBe(false);
+        });
     });
 });
