@@ -20,13 +20,13 @@
  * THE SOFTWARE.
 */
 
-import { MidaMarketWatcher, } from "#watchers/MidaMarketWatcher";
-import { MidaLiveIndicatorParameters, } from "#utilities/live/MidaLiveIndicatorParameters";
-import { MidaIndicator, } from "#indicators/MidaIndicator";
-import { MidaPeriod, } from "#periods/MidaPeriod";
+import { MidaTradingAccount, } from "#accounts/MidaTradingAccount";
 import { MidaDecimal, } from "#decimals/MidaDecimal";
 import { MidaEvent, } from "#events/MidaEvent";
-import { MidaTradingAccount } from "#accounts/MidaTradingAccount";
+import { MidaIndicator, } from "#indicators/MidaIndicator";
+import { MidaPeriod, } from "#periods/MidaPeriod";
+import { MidaLiveIndicatorParameters, } from "#utilities/live/MidaLiveIndicatorParameters";
+import { MidaMarketWatcher, } from "#watchers/MidaMarketWatcher";
 
 const liveIndicators: WeakMap<object, MidaMarketWatcher> = new WeakMap();
 const livePeriods: WeakMap<object, MidaMarketWatcher> = new WeakMap();
@@ -96,4 +96,29 @@ export const makeLivePeriods = async (symbol: string, timeframe: number, trading
     livePeriods.set(periods, marketWatcher);
 
     return periods;
+};
+
+export const makeLivePrices = async (symbol: string, tradingAccount: MidaTradingAccount): Promise<MidaDecimal[]> => {
+    const livePrices: MidaDecimal[] = [];
+    const marketWatcher: MidaMarketWatcher = new MidaMarketWatcher({ tradingAccount, });
+
+    await marketWatcher.watch(symbol, {
+        watchTicks: true,
+    });
+
+    livePrices[0] = await tradingAccount.getSymbolBid(symbol);
+    livePrices[1] = await tradingAccount.getSymbolAsk(symbol);
+
+    marketWatcher.on("tick", async (event: MidaEvent): Promise<void> => {
+        const { tick, } = event.descriptor;
+
+        livePrices[0] = tick.bid;
+        livePrices[1] = tick.ask;
+    });
+
+    return livePrices;
+};
+
+export const endLivePrices = async (): Promise<void> => {
+
 };
