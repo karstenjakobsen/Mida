@@ -25,7 +25,7 @@ import { MidaTradingAccountParameters, } from "#accounts/MidaTradingAccountParam
 import { MidaTradingAccountPositionAccounting, } from "#accounts/MidaTradingAccountPositionAccounting";
 import { MidaAsset, } from "#assets/MidaAsset";
 import { MidaAssetStatement, } from "#assets/MidaAssetStatement";
-import { MidaDate, } from "#dates/MidaDate";
+import { date, MidaDate, } from "#dates/MidaDate";
 import { MidaDecimal, } from "#decimals/MidaDecimal";
 import { MidaUnsupportedOperationError, } from "#errors/MidaUnsupportedOperationError";
 import { MidaEvent, } from "#events/MidaEvent";
@@ -35,6 +35,8 @@ import { MidaOrderDirectives, } from "#orders/MidaOrderDirectives";
 import { MidaPeriod, } from "#periods/MidaPeriod";
 import { MidaTradingPlatform, } from "#platforms/MidaTradingPlatform";
 import { MidaPosition, } from "#positions/MidaPosition";
+import { MidaMarketSnapshot, } from "#snapshots/MidaMarketSnapshot";
+import { MidaMarketSnapshotDirectives, } from "#snapshots/MidaMarketSnapshotDirectives";
 import { MidaSymbol, } from "#symbols/MidaSymbol";
 import { MidaSymbolTradeStatus, } from "#symbols/MidaSymbolTradeStatus";
 import { MidaTrade, } from "#trades/MidaTrade";
@@ -276,6 +278,24 @@ export abstract class MidaTradingAccount {
 
     public async getCryptoDepositAddress (asset: string, net: string): Promise<string> {
         return this.getCryptoAssetDepositAddress(asset, net);
+    }
+
+    public async marketSnapshot (directives: MidaMarketSnapshotDirectives): Promise<MidaMarketSnapshot> {
+        const symbol: string = directives.symbol;
+        const [ bid, ask, ] = await Promise.all([ this.getSymbolBid(symbol), this.getSymbolAsk(symbol), ]);
+        const periods: Record<string, MidaPeriod[]> = {};
+
+        for (const timeframe of directives.timeframes ?? []) {
+            periods[timeframe] = await this.getSymbolPeriods(symbol, timeframe);
+        }
+
+        return {
+            date: date(),
+            symbol,
+            bid,
+            ask,
+            periods,
+        };
     }
 
     public on (type: string): Promise<MidaEvent>;
